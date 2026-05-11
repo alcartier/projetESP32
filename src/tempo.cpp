@@ -10,8 +10,6 @@ void tempo::updateColors()
     Couleurs tempCurrentColor, tempNextColor;
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
 
-    // TODO : faire la requete HTTP pour récupérer les données et les stocker dans les variables temporaires ci-dessus
-
     HTTPClient http;
     http.begin("http://cartelectronic-cloud.fr:5200/prte$/getcolor/x");
 

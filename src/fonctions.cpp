@@ -68,52 +68,109 @@ void drawConnected()
     tft.println(WiFi.localIP().toString());
 }
 
+uint16_t couleurToTFT(Couleurs c)
+{
+    switch (c)
+    {
+    case Couleurs::Bleu:
+        return TFT_BLUE;
+    case Couleurs::Rouge:
+        return TFT_RED;
+    case Couleurs::Blanc:
+        return TFT_WHITE;
+    default:
+        return TFT_WHITE;
+    }
+}
+
 void drawMainUI(bool connected, tempo &t)
 {
     tft.fillScreen(TFT_LIGHTGREY);
 
-    // ===== TOP BAR =====
-    tft.fillRect(0, 0, 320, 40, TFT_WHITE);
+    // ===== SECTION HAUTE : AUJOURD'HUI / DEMAIN =====
+    tft.fillRect(0, 0, 320, 80, TFT_WHITE);
+    tft.drawRect(0, 0, 320, 80, TFT_BLACK);
+
+    // Aujourd'hui (gauche)
+    Couleurs todayColor = t.stringToColor(t.getCurrentColor());
+    uint16_t todayTFT = couleurToTFT(todayColor);
+
+    tft.fillRect(10, 15, 30, 30, todayTFT);
+    if (todayColor == Couleurs::Blanc)
+        tft.drawRect(10, 15, 30, 30, TFT_BLACK);
 
     tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(1);
+    tft.setTextSize(2);
+    tft.setCursor(50, 15);
+    tft.print("AUJOURD'HUI");
 
-    int y = 12;
-
-    tft.setCursor(5, y);
-    tft.println("Date d'aujourd'hui");
-
-    tft.setCursor(200, y);
-    tft.print("Connecter :");
-
-    // cercle aligné
-    tft.fillCircle(300, y + 4, 6, connected ? TFT_GREEN : TFT_RED);
-
-    // ===== TEXTE CENTRAL =====
     tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(3);
+    tft.setCursor(50, 45);
+    tft.print(t.getCurrentColor());
 
-    tft.setCursor(20, 100);
-    tft.println("Aujourd'Hui :");
+    // Demain (droite)
+    Couleurs tomorrowColor = t.stringToColor(t.GetNextColor());
+    uint16_t tomorrowTFT = couleurToTFT(tomorrowColor);
 
-    tft.setCursor(20, 140);
-    tft.println(t.getCurrentColor());
+    tft.setTextColor(TFT_BLACK);
+    tft.setCursor(200, 15);
+    tft.print("DEMAIN");
 
-    // ===== SEPARATION =====
-    tft.drawLine(0, 200, 320, 200, TFT_BLACK);
+    tft.drawRect(280, 15, 30, 30, TFT_BLACK);
+    tft.fillRect(281, 16, 28, 28, tomorrowTFT);
 
-    // ===== BOTTOM BAR =====
+    tft.setTextColor(TFT_BLACK);
+    tft.setCursor(200, 45);
+    tft.print(t.GetNextColor());
+
+    // ===== SECTION MILIEU : JOURS RESTANTS =====
+    tft.fillRect(0, 85, 320, 90, TFT_WHITE);
+    tft.drawRect(0, 85, 320, 90, TFT_BLACK);
+
+    tft.setTextColor(TFT_BLACK);
+    tft.setTextSize(2);
+    tft.setCursor(10, 95);
+    tft.print("Jours restants saison :");
+
+    int circleY = 140;
+
+    // Bleu
+    tft.fillCircle(40, circleY, 12, TFT_BLUE);
+    tft.setTextColor(TFT_BLACK);
+    tft.setCursor(60, circleY - 7);
+    tft.print(String(t.GetRemainingColor(Couleurs::Bleu)));
+
+    // Blanc
+    tft.drawCircle(140, circleY, 12, TFT_BLACK);
+    tft.setTextColor(TFT_BLACK);
+    tft.setCursor(160, circleY - 7);
+    tft.print(String(t.GetRemainingColor(Couleurs::Blanc)));
+
+    // Rouge
+    tft.fillCircle(240, circleY, 12, TFT_RED);
+    tft.setTextColor(TFT_BLACK);
+    tft.setCursor(260, circleY - 7);
+    tft.print(String(t.GetRemainingColor(Couleurs::Rouge)));
+
+    // ===== SECTION BASSE : DATE ET HEURE =====
+    tft.fillRect(0, 180, 320, 60, TFT_LIGHTGREY);
+    tft.drawRect(0, 180, 320, 60, TFT_BLACK);
+
+    tft.setTextColor(TFT_BLACK);
     tft.setTextSize(2);
 
-    tft.setCursor(20, 210);
-    tft.setTextColor(TFT_BLUE);
-    tft.println("Bleu:" + String(t.GetRemainingColor(Couleurs::Bleu)));
-
-    tft.setCursor(120, 210);
-    tft.setTextColor(TFT_RED);
-    tft.println("Rouge:" + String(t.GetRemainingColor(Couleurs::Rouge)));
-
-    tft.setCursor(220, 210);
-    tft.setTextColor(TFT_BLACK);
-    tft.println("Blanc:" + String(t.GetRemainingColor(Couleurs::Blanc)));
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo))
+    {
+        char buf[32];
+        strftime(buf, sizeof(buf), "%d/%m/%Y  %H:%M", &timeinfo);
+        int16_t tw = tft.textWidth(buf);
+        tft.setCursor((320 - tw) / 2, 200);
+        tft.print(buf);
+    }
+    else
+    {
+        tft.setCursor(30, 200);
+        tft.print("DATE ET HEURE");
+    }
 }
