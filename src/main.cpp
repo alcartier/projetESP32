@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <WiFiManager.h>
+#include <time.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "fonction.h"
@@ -51,6 +52,7 @@ void setup()
     if (res)
     {
         currentState = CONNECTED;
+        configTime(3600, 3600, "pool.ntp.org", "time.google.com");
         drawConnected();
     }
     else
