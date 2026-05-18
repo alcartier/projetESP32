@@ -4,6 +4,42 @@
 
 extern TFT_eSPI tft;
 
+#define BG_DARK      0x0841
+#define CARD_BG      0x2104
+#define CARD_BORDER  0x3186
+#define TEXT_WHITE   0xFFFF
+#define TEXT_GREY    0xAD55
+#define ACCENT_BLUE  0x34BF
+#define ACCENT_RED   0xF800
+#define ACCENT_GREEN 0x07E0
+
+void drawRoundedCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor)
+{
+    tft.fillRoundRect(x, y, w, h, 8, bgColor);
+    tft.drawRoundRect(x, y, w, h, 8, borderColor);
+}
+
+void drawColorDot(int cx, int cy, int r, Couleurs c)
+{
+    uint16_t color;
+    switch (c)
+    {
+    case Couleurs::Bleu:
+        color = ACCENT_BLUE;
+        break;
+    case Couleurs::Rouge:
+        color = ACCENT_RED;
+        break;
+    case Couleurs::Blanc:
+        color = 0xFFFF;
+        break;
+    default:
+        color = 0xFFFF;
+    }
+    tft.fillCircle(cx, cy, r, color);
+    tft.drawCircle(cx, cy, r, CARD_BORDER);
+}
+
 // AFFICHAGE :
 
 void drawBoot()
@@ -85,92 +121,90 @@ uint16_t couleurToTFT(Couleurs c)
 
 void drawMainUI(bool connected, tempo &t)
 {
-    tft.fillScreen(TFT_LIGHTGREY);
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
 
     // ===== SECTION HAUTE : AUJOURD'HUI / DEMAIN =====
-    tft.fillRect(0, 0, 320, 80, TFT_WHITE);
-    tft.drawRect(0, 0, 320, 80, TFT_BLACK);
+    drawRoundedCard(4, 4, 152, 72, CARD_BG, CARD_BORDER);
+    drawRoundedCard(164, 4, 152, 72, CARD_BG, CARD_BORDER);
+
+    Couleurs todayColor = t.stringToColor(t.getCurrentColor());
+    Couleurs tomorrowColor = t.stringToColor(t.GetNextColor());
 
     // Aujourd'hui (gauche)
-    Couleurs todayColor = t.stringToColor(t.getCurrentColor());
-    uint16_t todayTFT = couleurToTFT(todayColor);
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(14, 24);
+    tft.print("Aujourd'hui");
 
-    tft.fillRect(10, 15, 30, 30, todayTFT);
-    if (todayColor == Couleurs::Blanc)
-        tft.drawRect(10, 15, 30, 30, TFT_BLACK);
-
-    tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(2);
-    tft.setCursor(50, 15);
-    tft.print("AUJOURD'HUI");
-
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(50, 45);
+    drawColorDot(30, 55, 8, todayColor);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(45, 60);
     tft.print(t.getCurrentColor());
 
     // Demain (droite)
-    Couleurs tomorrowColor = t.stringToColor(t.GetNextColor());
-    uint16_t tomorrowTFT = couleurToTFT(tomorrowColor);
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(174, 24);
+    tft.print("Demain");
 
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(200, 15);
-    tft.print("DEMAIN");
-
-    tft.drawRect(280, 15, 30, 30, TFT_BLACK);
-    tft.fillRect(281, 16, 28, 28, tomorrowTFT);
-
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(200, 45);
+    drawColorDot(190, 55, 8, tomorrowColor);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(205, 60);
     tft.print(t.GetNextColor());
 
     // ===== SECTION MILIEU : JOURS RESTANTS =====
-    tft.fillRect(0, 85, 320, 90, TFT_WHITE);
-    tft.drawRect(0, 85, 320, 90, TFT_BLACK);
+    drawRoundedCard(4, 84, 312, 80, CARD_BG, CARD_BORDER);
 
-    tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(2);
-    tft.setCursor(10, 95);
-    tft.print("Jours restants saison :");
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(14, 104);
+    tft.print("Jours restants");
 
-    int circleY = 140;
+    int dotY = 140;
 
     // Bleu
-    tft.fillCircle(40, circleY, 12, TFT_BLUE);
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(60, circleY - 7);
-    tft.print(String(t.GetRemainingColor(Couleurs::Bleu)));
+    drawColorDot(35, dotY, 7, Couleurs::Bleu);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(50, dotY + 5);
+    tft.print(String(t.GetRemainingColor(Couleurs::Bleu)) + "/300");
 
     // Blanc
-    tft.drawCircle(140, circleY, 12, TFT_BLACK);
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(160, circleY - 7);
-    tft.print(String(t.GetRemainingColor(Couleurs::Blanc)));
+    drawColorDot(135, dotY, 7, Couleurs::Blanc);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(150, dotY + 5);
+    tft.print(String(t.GetRemainingColor(Couleurs::Blanc)) + "/43");
 
     // Rouge
-    tft.fillCircle(240, circleY, 12, TFT_RED);
-    tft.setTextColor(TFT_BLACK);
-    tft.setCursor(260, circleY - 7);
-    tft.print(String(t.GetRemainingColor(Couleurs::Rouge)));
+    drawColorDot(235, dotY, 7, Couleurs::Rouge);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(250, dotY + 5);
+    tft.print(String(t.GetRemainingColor(Couleurs::Rouge))+ "/22");
 
     // ===== SECTION BASSE : DATE ET HEURE =====
-    tft.fillRect(0, 180, 320, 60, TFT_LIGHTGREY);
-    tft.drawRect(0, 180, 320, 60, TFT_BLACK);
-
-    tft.setTextColor(TFT_BLACK);
-    tft.setTextSize(2);
+    drawRoundedCard(4, 172, 312, 44, CARD_BG, CARD_BORDER);
 
     struct tm timeinfo;
     if (getLocalTime(&timeinfo))
     {
         char buf[32];
         strftime(buf, sizeof(buf), "%d/%m/%Y  %H:%M", &timeinfo);
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(TEXT_WHITE, CARD_BG);
         int16_t tw = tft.textWidth(buf);
         tft.setCursor((320 - tw) / 2, 200);
         tft.print(buf);
     }
     else
     {
-        tft.setCursor(30, 200);
-        tft.print("DATE ET HEURE");
+        tft.setFreeFont(&FreeSans9pt7b);
+        tft.setTextColor(TEXT_GREY, CARD_BG);
+        tft.setCursor(80, 200);
+        tft.print("Synchronisation...");
     }
 }

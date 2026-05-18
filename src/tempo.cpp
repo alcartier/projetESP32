@@ -2,7 +2,6 @@
 
 tempo::tempo()
 {
-    updateColors();
 }
 
 void tempo::updateColors()
@@ -40,9 +39,9 @@ void tempo::updateColors()
         int firstComma = dcpt.indexOf(",");
         int secondComma = dcpt.indexOf(",", firstComma + 1);
 
-        tempNbRougeRemaining = dcpt.substring(0, firstComma).toInt();
+        tempNbBleuRemaining = dcpt.substring(0, firstComma).toInt();
         tempNbBlancRemaining = dcpt.substring(firstComma + 1, secondComma).toInt();
-        tempNbBleuRemaining = dcpt.substring(secondComma + 1).toInt();
+        tempNbRougeRemaining = dcpt.substring(secondComma + 1).toInt();
 
         // conversion string → enum
         tempCurrentColor = stringToColor(colorJ0);
@@ -57,12 +56,15 @@ void tempo::updateColors()
 
     http.end();
 
-    //
+    // ---
+
     currentColor = tempCurrentColor;
     nextColor = tempNextColor;
-    nbRougeRemaining = tempNbRougeRemaining;
-    nbBleuRemaining = tempNbBleuRemaining;
-    nbBlancRemaining = tempNbBlancRemaining;
+
+
+    nbRougeRemaining = nbRougeMax - tempNbRougeRemaining;
+    nbBleuRemaining = nbBleuMax - tempNbBleuRemaining;
+    nbBlancRemaining = nbBlancMax - tempNbBlancRemaining;
 }
 
 String tempo::getCurrentColor()

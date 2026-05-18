@@ -18,6 +18,9 @@ private:
     std::string requete = "http://cartelectronic-cloud.fr:5200/prte$/getcolor/x";
 
     int nbRougeRemaining, nbBleuRemaining, nbBlancRemaining;
+    int nbRougeMax = 22, 
+    nbBleuMax = 300, 
+    nbBlancMax = 43;
 
 public:
     // Constructeur

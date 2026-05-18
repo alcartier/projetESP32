@@ -20,6 +20,8 @@ AppState currentState = BOOT;
 
 bool lastConnectedState = false;
 bool wifiConnected = false;
+bool updatedToday = false;
+int lastDay = -1;
 
 tempo t;
 
@@ -82,6 +84,26 @@ void loop()
     }
 
     bool isConnected = (WiFi.status() == WL_CONNECTED);
+
+    if (isConnected)
+    {
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo))
+        {
+            if (timeinfo.tm_mday != lastDay)
+            {
+                updatedToday = false;
+                lastDay = timeinfo.tm_mday;
+            }
+
+            if (!updatedToday && timeinfo.tm_hour >= 11)
+            {
+                t.updateColors();
+                updatedToday = true;
+                drawMainUI(isConnected, t);
+            }
+        }
+    }
 
     if (isConnected != lastConnectedState)
     {
