@@ -1,10 +1,10 @@
 #include "tempo.h"
 
-tempo::tempo()
+CTempo::CTempo()
 {
 }
 
-void tempo::updateColors()
+void CTempo::updateColors()
 {
     Couleurs tempCurrentColor, tempNextColor;
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
@@ -67,17 +67,17 @@ void tempo::updateColors()
     nbBlancRemaining = nbBlancMax - tempNbBlancRemaining;
 }
 
-String tempo::getCurrentColor()
+String CTempo::getCurrentColor()
 {
     return colorToString(currentColor);
 }
 
-String tempo::GetNextColor()
+String CTempo::GetNextColor()
 {
     return colorToString(nextColor);
 }
 
-int tempo::GetRemainingColor(Couleurs color)
+int CTempo::GetRemainingColor(Couleurs color)
 {
     switch (color)
     {
@@ -92,7 +92,7 @@ int tempo::GetRemainingColor(Couleurs color)
     }
 }
 
-Couleurs tempo::stringToColor(String color)
+Couleurs CTempo::stringToColor(String color)
 {
 
     if (color == "BLEU")
@@ -107,7 +107,7 @@ Couleurs tempo::stringToColor(String color)
     return Couleurs::Bleu;
 }
 
-String tempo::colorToString(Couleurs color)
+String CTempo::colorToString(Couleurs color)
 {
     switch (color)
     {

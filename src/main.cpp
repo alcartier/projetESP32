@@ -5,11 +5,12 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "fonction.h"
-#include "tempo.h"
+#include "app.h"
 
 TFT_eSPI tft = TFT_eSPI();
 
-enum AppState {
+enum AppState
+{
     BOOT,
     WIFI_CONFIG,
     CONNECTING,
@@ -20,10 +21,13 @@ AppState currentState = BOOT;
 
 bool lastConnectedState = false;
 bool wifiConnected = false;
+
 bool updatedToday = false;
 int lastDay = -1;
 
-tempo t;
+int lastMinute = -1;
+
+app apli;
 
 void setup()
 {
@@ -63,8 +67,7 @@ void setup()
         drawWifiConfig();
     }
 
-    t.updateColors();
-    
+    apli.getTempo().updateColors();
 }
 
 void loop()
@@ -98,9 +101,14 @@ void loop()
 
             if (!updatedToday && timeinfo.tm_hour >= 11)
             {
-                t.updateColors();
+                apli.getTempo().updateColors();
                 updatedToday = true;
-                drawMainUI(isConnected, t);
+            }
+
+            if (timeinfo.tm_min != lastMinute)
+            {
+                lastMinute = timeinfo.tm_min;
+                apli.updateTime();
             }
         }
     }
@@ -108,6 +116,6 @@ void loop()
     if (isConnected != lastConnectedState)
     {
         lastConnectedState = isConnected;
-        drawMainUI(isConnected, t);
+        apli.drawMainUI(isConnected);
     }
 }

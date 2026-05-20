@@ -9,7 +9,7 @@ enum Couleurs
     Blanc
 };
 
-class tempo
+class CTempo
 {
 private:
     Couleurs currentColor;
@@ -24,7 +24,7 @@ private:
 
 public:
     // Constructeur
-    tempo();
+    CTempo();
 
     // Méthodes :
     void updateColors();
