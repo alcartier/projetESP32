@@ -8,6 +8,8 @@
 #define ACCENT_BLUE  0x34BF
 #define ACCENT_RED   0xF800
 #define ACCENT_GREEN 0x07E0
+#define ACCENT_ORANGE 0xFD20
+#define ACCENT_CYAN  0x07FF
 
 
 void app::drawColorDot(int cx, int cy, int r, Couleurs c)
@@ -55,6 +57,123 @@ uint16_t app::couleurToTFT(Couleurs c)
 CTempo& app::getTempo()
 {
     return tempo;
+}
+
+void app::drawBoot()
+{
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
+    drawRoundedCard(40, 80, 240, 80, CARD_BG, CARD_BORDER);
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(100, 115);
+    tft.print("TEMPO ESP32");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(95, 140);
+    tft.print("Demarrage...");
+}
+
+void app::drawWifiPortal()
+{
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
+
+    drawRoundedCard(10, 20, 300, 130, CARD_BG, CARD_BORDER);
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(TEXT_WHITE, CARD_BG);
+    tft.setCursor(20, 45);
+    tft.print("Configuration WiFi");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(20, 75);
+    tft.print("Connectez-vous au reseau :");
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_CYAN, CARD_BG);
+    tft.setCursor(20, 100);
+    tft.print("ESP32_Config");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(20, 125);
+    tft.print("Puis ouvrir : ");
+
+    tft.setTextColor(ACCENT_ORANGE, CARD_BG);
+    tft.print("192.168.4.1");
+}
+
+void app::drawConnecting()
+{
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
+    drawRoundedCard(40, 80, 240, 80, CARD_BG, CARD_BORDER);
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_ORANGE, CARD_BG);
+    tft.setCursor(90, 115);
+    tft.print("Connexion...");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(80, 140);
+    tft.print("Veuillez patienter");
+}
+
+void app::drawConnected()
+{
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
+    drawRoundedCard(30, 60, 260, 110, CARD_BG, CARD_BORDER);
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_GREEN, CARD_BG);
+    tft.setCursor(110, 90);
+    tft.print("Connecte !");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(50, 120);
+    tft.print("IP : ");
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_CYAN, CARD_BG);
+    tft.print(WiFi.localIP().toString());
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(50, 148);
+    tft.print("Chargement des donnees...");
+}
+
+void app::drawConnectionLost()
+{
+    tft.fillScreen(BG_DARK);
+    tft.setTextSize(1);
+    drawRoundedCard(20, 50, 280, 140, CARD_BG, CARD_BORDER);
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_RED, CARD_BG);
+    tft.setCursor(70, 80);
+    tft.print("Connexion perdue");
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(30, 110);
+    tft.print("Reconnexion en cours...");
+
+    tft.setTextColor(TEXT_GREY, CARD_BG);
+    tft.setCursor(30, 140);
+    tft.print("Ou configurez via :");
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_CYAN, CARD_BG);
+    tft.setCursor(30, 165);
+    tft.print("ESP32_Config");
 }
 
 void app::drawMainUI(bool connected)

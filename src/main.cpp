@@ -4,30 +4,40 @@
 #include <time.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
-#include "fonction.h"
 #include "app.h"
 
 TFT_eSPI tft = TFT_eSPI();
 
-enum AppState
-{
-    BOOT,
-    WIFI_CONFIG,
-    CONNECTING,
-    CONNECTED
-};
-
-AppState currentState = BOOT;
-
 bool lastConnectedState = false;
-bool wifiConnected = false;
-
 bool updatedToday = false;
+bool mainUIDrawn = false;
 int lastDay = -1;
-
 int lastMinute = -1;
 
 app apli;
+
+void connectWiFi()
+{
+    WiFiManager wm;
+    wm.setConfigPortalTimeout(120);
+
+    apli.drawConnecting();
+
+    if (!wm.autoConnect("ESP32_Config"))
+    {
+        apli.drawWifiPortal();
+        wm.startConfigPortal("ESP32_Config");
+    }
+
+    configTime(3600, 3600, "pool.ntp.org", "time.google.com");
+    apli.drawConnected();
+    delay(1500);
+
+    apli.getTempo().updateColors();
+    apli.drawMainUI(true);
+    mainUIDrawn = true;
+    lastConnectedState = true;
+}
 
 void setup()
 {
@@ -41,52 +51,33 @@ void setup()
     tft.init();
     tft.setRotation(1);
 
-    currentState = BOOT;
-    drawBoot();
+    apli.drawBoot();
     delay(1000);
 
-    WiFiManager wm;
-
-    currentState = WIFI_CONFIG;
-    drawWifiConfig();
-
-    currentState = CONNECTING;
-    drawConnecting();
-
-    bool res = wm.autoConnect("ESP32_Config");
-
-    if (res)
-    {
-        currentState = CONNECTED;
-        configTime(3600, 3600, "pool.ntp.org", "time.google.com");
-        drawConnected();
-    }
-    else
-    {
-        currentState = WIFI_CONFIG;
-        drawWifiConfig();
-    }
-
-    apli.getTempo().updateColors();
+    connectWiFi();
 }
 
 void loop()
 {
-    if (currentState == CONNECTED && WiFi.status() != WL_CONNECTED)
+    bool isConnected = (WiFi.status() == WL_CONNECTED);
+
+    if (!isConnected && lastConnectedState)
     {
-        currentState = WIFI_CONFIG;
+        lastConnectedState = false;
+        mainUIDrawn = false;
+        apli.drawConnectionLost();
 
-        WiFiManager wm;
-        drawWifiConfig();
-
-        if (wm.autoConnect("ESP32_Config"))
-        {
-            currentState = CONNECTED;
-            drawConnected();
-        }
+        delay(3000);
+        connectWiFi();
+        return;
     }
 
-    bool isConnected = (WiFi.status() == WL_CONNECTED);
+    if (isConnected && !mainUIDrawn)
+    {
+        apli.drawMainUI(true);
+        mainUIDrawn = true;
+        lastConnectedState = true;
+    }
 
     if (isConnected)
     {
@@ -103,6 +94,7 @@ void loop()
             {
                 apli.getTempo().updateColors();
                 updatedToday = true;
+                apli.drawMainUI(true);
             }
 
             if (timeinfo.tm_min != lastMinute)
@@ -111,11 +103,5 @@ void loop()
                 apli.updateTime();
             }
         }
-    }
-
-    if (isConnected != lastConnectedState)
-    {
-        lastConnectedState = isConnected;
-        apli.drawMainUI(isConnected);
     }
 }
