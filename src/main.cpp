@@ -19,24 +19,24 @@ app apli;
 void connectWiFi()
 {
     WiFiManager wm;
-    wm.setConfigPortalTimeout(120);
+
+    wm.setAPCallback([](WiFiManager *mgr) {
+        apli.drawWifiPortal();
+    });
 
     apli.drawConnecting();
+    bool connected = wm.autoConnect("ESP32_Config");
 
-    if (!wm.autoConnect("ESP32_Config"))
+    if (connected)
     {
-        apli.drawWifiPortal();
-        wm.startConfigPortal("ESP32_Config");
+        configTime(3600, 3600, "pool.ntp.org", "time.google.com");
+        apli.drawConnected();
+        delay(1500);
+        apli.getTempo().updateColors();
+        apli.drawMainUI(true);
+        mainUIDrawn = true;
+        lastConnectedState = true;
     }
-
-    configTime(3600, 3600, "pool.ntp.org", "time.google.com");
-    apli.drawConnected();
-    delay(1500);
-
-    apli.getTempo().updateColors();
-    apli.drawMainUI(true);
-    mainUIDrawn = true;
-    lastConnectedState = true;
 }
 
 void setup()
@@ -66,20 +66,12 @@ void loop()
         lastConnectedState = false;
         mainUIDrawn = false;
         apli.drawConnectionLost();
-
-        delay(3000);
+        delay(2000);
         connectWiFi();
         return;
     }
 
-    if (isConnected && !mainUIDrawn)
-    {
-        apli.drawMainUI(true);
-        mainUIDrawn = true;
-        lastConnectedState = true;
-    }
-
-    if (isConnected)
+    if (isConnected && mainUIDrawn)
     {
         struct tm timeinfo;
         if (getLocalTime(&timeinfo))
