@@ -6,7 +6,8 @@ enum Couleurs
 {
     Bleu,
     Rouge,
-    Blanc
+    Blanc,
+    NONE
 };
 
 class CTempo
@@ -23,15 +24,19 @@ private:
     nbBlancMax = 43;
 
 public:
+    bool uncertain = false;
+
     // Constructeur
     CTempo();
 
     // Méthodes :
-    void updateColors();
+    bool updateColors();
+    void shiftToNextDay();
     Couleurs stringToColor(String color);
     String colorToString(Couleurs color);
     // Getters :
     String getCurrentColor();
     String GetNextColor();
     int GetRemainingColor(Couleurs color);
+    bool hasNextColor();
 };

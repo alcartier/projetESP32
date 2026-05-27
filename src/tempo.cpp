@@ -4,7 +4,7 @@ CTempo::CTempo()
 {
 }
 
-void CTempo::updateColors()
+bool CTempo::updateColors()
 {
     Couleurs tempCurrentColor, tempNextColor;
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
@@ -51,20 +51,30 @@ void CTempo::updateColors()
     {
         Serial.println("Erreur HTTP");
         http.end();
-        return;
+        return false;
     }
 
     http.end();
 
-    // ---
-
     currentColor = tempCurrentColor;
     nextColor = tempNextColor;
-
-
     nbRougeRemaining = nbRougeMax - tempNbRougeRemaining;
     nbBleuRemaining = nbBleuMax - tempNbBleuRemaining;
     nbBlancRemaining = nbBlancMax - tempNbBlancRemaining;
+    uncertain = false;
+    return true;
+}
+
+void CTempo::shiftToNextDay()
+{
+    currentColor = nextColor;
+    nextColor = Couleurs::NONE;
+    uncertain = false;
+}
+
+bool CTempo::hasNextColor()
+{
+    return !uncertain;
 }
 
 String CTempo::getCurrentColor()
@@ -104,7 +114,7 @@ Couleurs CTempo::stringToColor(String color)
     if (color == "BLANC")
         return Couleurs::Blanc;
 
-    return Couleurs::Bleu;
+    return Couleurs::NONE;
 }
 
 String CTempo::colorToString(Couleurs color)
@@ -118,6 +128,6 @@ String CTempo::colorToString(Couleurs color)
     case Blanc:
         return "BLANC";
     default:
-        return "BLEU";
+        return "???";
     }
 }

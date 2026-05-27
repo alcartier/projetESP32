@@ -11,6 +11,169 @@
 #define ACCENT_ORANGE 0xFD20
 #define ACCENT_CYAN  0x07FF
 
+//Utilitaires
+
+uint16_t app::couleurToTFT(Couleurs c)
+{
+    switch (c)
+    {
+    case Couleurs::Bleu:
+        return TFT_BLUE;
+    case Couleurs::Rouge:
+        return TFT_RED;
+    case Couleurs::Blanc:
+        return TFT_WHITE;
+    default:
+        return TFT_WHITE;
+    }
+}
+
+CTempo& app::getTempo()
+{
+    return tempo;
+}
+
+
+
+//Procedure
+
+void app::update()
+{
+
+    handleStates();
+
+    switch (currentState)
+    {
+    case CONNECTION:
+        if (!connected)
+        {
+            connected = false;
+            mainUIDrawn = false;
+            drawConnectionLost();
+            delay(2000);
+            connectWiFi();
+        }
+        break;
+
+    case MAIN_PAGE:
+    {
+        if (!mainUIDrawn)
+        {
+            drawMainUI(true);
+            mainUIDrawn = true;
+        }
+
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo))
+        {
+            if (timeinfo.tm_mday != lastDay)
+            {
+                lastDay = timeinfo.tm_mday;
+                updatedToday = false;
+                midnightShifted = false;
+                lastRetryTime = 0;
+            }
+
+            // Minuit : shift couleurs
+            if (!midnightShifted)
+            {
+                tempo.shiftToNextDay();
+                midnightShifted = true;
+                drawMainUI(true);
+            }
+
+            // 11h+ : fetch API
+            if (!updatedToday && timeinfo.tm_hour >= 11 && timeinfo.tm_hour < 13)
+            {
+                if (millis() - lastRetryTime >= 300000 || lastRetryTime == 0)
+                {
+                    lastRetryTime = millis();
+                    if (tempo.updateColors())
+                    {
+                        char timeBuf[6];
+                        strftime(timeBuf, sizeof(timeBuf), "%H:%M", &timeinfo);
+                        lastFetchTime = String(timeBuf);
+                        updatedToday = true;
+                        drawMainUI(true);
+                    }
+                }
+            }
+
+            // 13h+ sans update : flag incertain
+            if (!updatedToday && timeinfo.tm_hour >= 13)
+            {
+                tempo.uncertain = true;
+                updatedToday = true;
+                drawMainUI(true);
+            }
+
+            if (timeinfo.tm_min != lastMinute)
+            {
+                lastMinute = timeinfo.tm_min;
+                updateTime();
+            }
+        }
+        break;
+    }
+
+    case SETTING_PAGE:
+        break;
+    }
+}
+
+void app::handleStates()
+{
+    bool isConnected = (WiFi.status() == WL_CONNECTED);
+
+    if (currentState == MAIN_PAGE && !isConnected)
+    {
+        currentState = CONNECTION;
+        mainUIDrawn = false;
+    }
+
+    if (currentState == CONNECTION && isConnected)
+    {
+        currentState = MAIN_PAGE;
+    }
+}
+
+void app::connectWiFi()
+{
+    WiFiManager wm;
+
+    wm.setAPCallback([this](WiFiManager *mgr) {
+        drawWifiPortal();
+    });
+
+    drawConnecting();
+    bool res = wm.autoConnect("ESP32_Config");
+
+    if (res)
+    {
+        configTime(3600, 3600, "pool.ntp.org", "time.google.com");
+        drawConnected();
+        delay(1500);
+        if (tempo.updateColors())
+        {
+            struct tm ti;
+            if (getLocalTime(&ti))
+            {
+                char timeBuf[6];
+                strftime(timeBuf, sizeof(timeBuf), "%H:%M", &ti);
+                lastFetchTime = String(timeBuf);
+                lastDay = ti.tm_mday;
+            }
+            updatedToday = true;
+            midnightShifted = true;
+        }
+        //tempo.shiftToNextDay(); //Test : simule minuit
+        drawMainUI(true);
+        mainUIDrawn = true;
+        connected = true;
+    }
+}
+
+//AFFICHAGES
 
 void app::drawColorDot(int cx, int cy, int r, Couleurs c)
 {
@@ -37,26 +200,6 @@ void app::drawRoundedCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t
 {
     tft.fillRoundRect(x, y, w, h, 8, bgColor);
     tft.drawRoundRect(x, y, w, h, 8, borderColor);
-}
-
-uint16_t app::couleurToTFT(Couleurs c)
-{
-    switch (c)
-    {
-    case Couleurs::Bleu:
-        return TFT_BLUE;
-    case Couleurs::Rouge:
-        return TFT_RED;
-    case Couleurs::Blanc:
-        return TFT_WHITE;
-    default:
-        return TFT_WHITE;
-    }
-}
-
-CTempo& app::getTempo()
-{
-    return tempo;
 }
 
 void app::drawBoot()
@@ -220,6 +363,14 @@ void app::drawMainUI(bool connected)
     tft.setTextColor(TEXT_GREY, CARD_BG);
     tft.setCursor(14, 104);
     tft.print("Jours restants");
+
+    if (tempo.uncertain)
+    {
+        tft.setFreeFont(&FreeSans9pt7b);
+        tft.setTextColor(ACCENT_ORANGE, CARD_BG);
+        tft.setCursor(150, 104);
+        tft.print("! Incertain (" + lastFetchTime + ")");
+    }
 
     int dotY = 140;
 
