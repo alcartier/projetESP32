@@ -9,6 +9,11 @@
 
 extern TFT_eSPI tft;
 
+enum Mode{
+    Release,
+    Debug
+};
+
 enum State
     {
         CONNECTION,
@@ -22,6 +27,7 @@ class app
 private:
 
     State currentState = CONNECTION;
+    Mode currentMode = Debug;
     CTempo tempo;
     bool connected = false;
     bool mainUIDrawn = false;
@@ -48,6 +54,7 @@ public:
     void connectWiFi();
     void update();
     void handleStates();
+    void handleModes();
     //AFFICHAGES :
 
         //Components de base :

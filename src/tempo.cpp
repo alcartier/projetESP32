@@ -10,7 +10,9 @@ bool CTempo::updateColors()
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
 
     HTTPClient http;
-    http.begin("http://cartelectronic-cloud.fr:5200/prte$/getcolor/x");
+    //http.begin("http://cartelectronic-cloud.fr:5200/prte$/getcolor/x");
+    http.begin(requete.c_str());
+    //http.begin("http://192.168.1.57/test.xml");//server local de test
 
     int httpCode = http.GET();
 

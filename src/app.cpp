@@ -41,6 +41,7 @@ void app::update()
 {
 
     handleStates();
+    handleModes();
 
     switch (currentState)
     {
@@ -137,6 +138,34 @@ void app::handleStates()
     }
 }
 
+/// @brief Gère les modes de l'application (Release, Debug)
+void app::handleModes()
+{
+    switch (currentMode)
+    {
+        case Release:
+            // Pas de debug, pas de mode alternatif pour l'instant
+            if (tempo.getRequete() == "http://192.168.1.57/test.xml"){
+                tempo.setRequete("http://cartelectronic-cloud.fr:5200/prte$/getcolor/x");  
+            }
+            break;
+        case Debug:
+            tempo.setRequete("http://192.168.1.57/test.xml");
+            uint16_t tx, ty;
+            if (tft.getTouch(&tx, &ty))
+            {
+                Serial.println("Touch: x=" + String(tx) + " y=" + String(ty));
+                if (tx > 240 && ty > 120)
+                {
+                    tempo.shiftToNextDay();
+                    drawMainUI(true);
+                    delay(300);
+                }
+            }
+            break;
+    }
+}
+
 void app::connectWiFi()
 {
     WiFiManager wm;
@@ -153,6 +182,7 @@ void app::connectWiFi()
         configTime(3600, 3600, "pool.ntp.org", "time.google.com");
         drawConnected();
         delay(1500);
+        handleModes();
         if (tempo.updateColors())
         {
             struct tm ti;

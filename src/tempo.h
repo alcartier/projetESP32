@@ -39,4 +39,12 @@ public:
     String GetNextColor();
     int GetRemainingColor(Couleurs color);
     bool hasNextColor();
+
+    std::string getRequete() const {
+        return requete;
+    };
+    void setRequete(std::string newRequete) {   
+        requete = newRequete;
+    };
+
 };
