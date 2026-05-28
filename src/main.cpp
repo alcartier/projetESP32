@@ -20,13 +20,11 @@ void setup()
     tft.init();
     tft.setRotation(1);
 
-    apli.drawBoot();
-    delay(1000);
-
-    apli.connectWiFi();
+    apli.init();
 }
 
 void loop()
 {
     apli.update();
+
 }

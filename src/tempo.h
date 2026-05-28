@@ -16,7 +16,15 @@ private:
     Couleurs currentColor;
     Couleurs nextColor;
 
+#ifdef DEBUG_MODE
+    std::string requete = "http://192.168.1.57/test.xml";
+#endif
+
+#ifdef RELEASE_MODE
     std::string requete = "http://cartelectronic-cloud.fr:5200/prte$/getcolor/x";
+#endif
+
+    
 
     int nbRougeRemaining, nbBleuRemaining, nbBlancRemaining;
     int nbRougeMax = 22, 

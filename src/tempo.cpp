@@ -6,13 +6,13 @@ CTempo::CTempo()
 
 bool CTempo::updateColors()
 {
+    uncertain = false;
     Couleurs tempCurrentColor, tempNextColor;
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
 
     HTTPClient http;
-    //http.begin("http://cartelectronic-cloud.fr:5200/prte$/getcolor/x");
+
     http.begin(requete.c_str());
-    //http.begin("http://192.168.1.57/test.xml");//server local de test
 
     int httpCode = http.GET();
 
@@ -24,13 +24,37 @@ bool CTempo::updateColors()
         int startJ0 = response.indexOf("<dateJ0>") + 8;
         int endJ0 = response.indexOf("</dateJ0>");
         String dateJ0 = response.substring(startJ0, endJ0);
+        String dateJ0Only = dateJ0.substring(0, dateJ0.indexOf(","));
         String colorJ0 = dateJ0.substring(dateJ0.indexOf(",") + 1);
 
         // -------- dateJ1 --------
         int startJ1 = response.indexOf("<dateJ1>") + 8;
         int endJ1 = response.indexOf("</dateJ1>");
         String dateJ1 = response.substring(startJ1, endJ1);
+        String dateJ1Only = dateJ1.substring(0, dateJ1.indexOf(","));
         String colorJ1 = dateJ1.substring(dateJ1.indexOf(",") + 1);
+
+        // Verification des dates
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo))
+        {
+            char todayBuf[11], tomorrowBuf[11];
+            strftime(todayBuf, sizeof(todayBuf), "%Y-%m-%d", &timeinfo);
+
+            time_t now = mktime(&timeinfo);
+            time_t tomorrow = now + 86400;
+            struct tm tmTomorrow;
+            localtime_r(&tomorrow, &tmTomorrow);
+            strftime(tomorrowBuf, sizeof(tomorrowBuf), "%Y-%m-%d", &tmTomorrow);
+
+            if (dateJ0Only != String(todayBuf) || dateJ1Only != String(tomorrowBuf))
+            {
+#ifdef DEBUG_MODE
+                Serial.println("date incorrecte");
+#endif
+                uncertain = true;
+            }
+        }
 
         // -------- dcpt --------
         int startDcpt = response.indexOf("<dcpt>") + 6;
@@ -63,7 +87,9 @@ bool CTempo::updateColors()
     nbRougeRemaining = nbRougeMax - tempNbRougeRemaining;
     nbBleuRemaining = nbBleuMax - tempNbBleuRemaining;
     nbBlancRemaining = nbBlancMax - tempNbBlancRemaining;
-    uncertain = false;
+    if(uncertain == false){
+        uncertain = false;
+    }
     return true;
 }
 
