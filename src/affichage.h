@@ -26,4 +26,6 @@ public:
     void drawConnecting();
     void drawConnected();
     void drawConnectionLost();
+
+    //ECRAN DE CONFIG :
 };
