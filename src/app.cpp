@@ -11,6 +11,7 @@ CTempo &app::getTempo()
 
 void app::init()
 {
+    affichage.setDarkMode(Sombre);
     affichage.drawBoot();
     delay(1000);
     connectWiFi();
@@ -97,8 +98,17 @@ void app::update()
     }
 
     case SETTING_PAGE:
+    {
+        if (!settingsDrawn)
+        {
+            drawSettingsUI();
+            settingsDrawn = true;
+        }
         break;
     }
+    }
+
+    handleTouch();
 }
 
 void app::handleStates()
@@ -189,6 +199,75 @@ void app::connectWiFi()
         mainUIDrawn = true;
         connected = true;
     }
+}
+
+void app::handleTouch()
+{
+    uint16_t tx, ty;
+    bool pressed = tft.getTouch(&tx, &ty);
+
+    if (!pressed)
+    {
+        touchWasPressed = false;
+        return;
+    }
+
+    // Convertir en coordonnees ecran (y=0 tactile = bas ecran)
+    ty = 240 - ty;
+
+    // Ne reagir qu'au front montant (nouveau toucher)
+    if (touchWasPressed)
+        return;
+    touchWasPressed = true;
+
+    // Debounce supplementaire
+    if (millis() - lastTouchTime < 400)
+        return;
+    lastTouchTime = millis();
+
+    switch (currentState)
+    {
+    case MAIN_PAGE:
+        currentState = SETTING_PAGE;
+        settingsDrawn = false;
+        break;
+
+    case SETTING_PAGE:
+        // Toggle Mode sombre : drawToggle(24, 50, ...) → 44x22 + label
+        if (ty >= 45 && ty <= 75)
+        {
+            Sombre = !Sombre;
+            affichage.setDarkMode(Sombre);
+            settingsDrawn = false;
+        }
+        // Toggle Alarme : drawToggle(24, 90, ...) → 44x22 + label
+        else if (ty >= 85 && ty <= 115)
+        {
+            Alarme = !Alarme;
+            settingsDrawn = false;
+        }
+        // Toggle Sombre auto : drawToggle(24, 130, ...) → 44x22 + label
+        else if (ty >= 125 && ty <= 155)
+        {
+            AutoSombre = !AutoSombre;
+            settingsDrawn = false;
+        }
+        // Bouton Retour : drawRoundedCard(110, 185, 100, 34)
+        else if (tx >= 110 && tx <= 210 && ty >= 185 && ty <= 219)
+        {
+            currentState = MAIN_PAGE;
+            mainUIDrawn = false;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void app::drawSettingsUI()
+{
+    affichage.drawSettingsPage(Sombre, Alarme, AutoSombre);
 }
 
 // Wrapper affichage

@@ -6,9 +6,27 @@
 
 extern TFT_eSPI tft;
 
+struct Theme
+{
+    uint16_t bg;
+    uint16_t cardBg;
+    uint16_t cardBorder;
+    uint16_t textPrimary;
+    uint16_t textSecondary;
+};
+
 class Caffichage
 {
+private:
+    bool darkMode = true;
+    Theme theme;
+    void applyTheme();
+
 public:
+    Caffichage();
+    void setDarkMode(bool dark);
+    bool isDarkMode() const;
+
     uint16_t couleurToTFT(Couleurs c);
 
     void drawRoundedCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor);
@@ -28,4 +46,7 @@ public:
     void drawConnectionLost();
 
     //ECRAN DE CONFIG :
+    void drawSettingsPage(bool sombre, bool alarme, bool autoSombre);
+    void drawToggle(int x, int y, bool state, const char* label);
+    void drawBackButton();
 };

@@ -30,11 +30,16 @@ private:
     unsigned long lastRetryTime = 0;
     String lastFetchTime = "--:--";
 
-    // Setings
+    // Settings
 
     bool Alarme = true;
     bool Sombre = true;
     bool AutoSombre = false;
+
+    // Touch
+    bool settingsDrawn = false;
+    unsigned long lastTouchTime = 0;
+    bool touchWasPressed = false;
 
 public:
     // Getters :
@@ -45,9 +50,12 @@ public:
     void connectWiFi();
     void update();
     void handleStates();
+    void handleTouch();
 
     void updateColorsandUI();
     void shiftToNextDayandUI();
+
+    void drawSettingsUI();
 
 #ifdef DEBUG_MODE
     void Debug();
