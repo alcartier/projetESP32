@@ -7,10 +7,31 @@ CTempo &app::getTempo()
     return tempo;
 }
 
+// Settings NVS
+
+void app::loadSettings()
+{
+    settingsPrefs.begin("settings", true);
+    Sombre = settingsPrefs.getBool("sombre", true);
+    Alarme = settingsPrefs.getBool("alarme", true);
+    AutoSombre = settingsPrefs.getBool("autoSombre", false);
+    settingsPrefs.end();
+}
+
+void app::saveSettings()
+{
+    settingsPrefs.begin("settings", false);
+    settingsPrefs.putBool("sombre", Sombre);
+    settingsPrefs.putBool("alarme", Alarme);
+    settingsPrefs.putBool("autoSombre", AutoSombre);
+    settingsPrefs.end();
+}
+
 // Procedure
 
 void app::init()
 {
+    loadSettings();
     affichage.setDarkMode(Sombre);
     affichage.drawBoot();
     delay(1000);
@@ -170,16 +191,17 @@ void app::connectWiFi()
     WiFiManager wm;
 
     wm.setConnectTimeout(10);
+    wm.setConfigPortalTimeout(300);
 
     wm.setAPCallback([this](WiFiManager *mgr)
                      { affichage.drawWifiPortal(); });
 
     affichage.drawConnecting();
-    bool res = wm.autoConnect("ESP32_Config");
+    bool res = wm.autoConnect("TEMPO-Config");
 
     if (res)
     {
-        configTime(3600, 3600, "pool.ntp.org", "time.google.com");
+        configTzTime("CET-1CEST,M3.5.0/2,M10.5.0/3", "pool.ntp.org", "time.google.com");
         affichage.drawConnected();
         delay(1500);
         if (tempo.updateColors())
@@ -194,6 +216,14 @@ void app::connectWiFi()
             }
             updatedToday = true;
             midnightShifted = true;
+        }
+        else
+        {
+            if (tempo.fetchDate.length() > 0)
+            {
+                lastFetchTime = "NVS";
+                tempo.uncertain = true;
+            }
         }
         drawMainUI();
         mainUIDrawn = true;
@@ -233,27 +263,37 @@ void app::handleTouch()
         break;
 
     case SETTING_PAGE:
-        // Toggle Mode sombre : drawToggle(24, 50, ...) → 44x22 + label
-        if (ty >= 45 && ty <= 75)
+        // Toggle Mode sombre : drawToggle(18, 38, ...) → y=38..60
+        if (ty >= 33 && ty <= 63)
         {
             Sombre = !Sombre;
             affichage.setDarkMode(Sombre);
+            saveSettings();
             settingsDrawn = false;
         }
-        // Toggle Alarme : drawToggle(24, 90, ...) → 44x22 + label
-        else if (ty >= 85 && ty <= 115)
+        // Toggle Alarme : drawToggle(18, 72, ...) → y=72..94
+        else if (ty >= 67 && ty <= 97)
         {
             Alarme = !Alarme;
+            saveSettings();
             settingsDrawn = false;
         }
-        // Toggle Sombre auto : drawToggle(24, 130, ...) → 44x22 + label
-        else if (ty >= 125 && ty <= 155)
+        // Toggle Sombre auto : drawToggle(18, 106, ...) → y=106..128
+        else if (ty >= 101 && ty <= 131)
         {
             AutoSombre = !AutoSombre;
+            saveSettings();
             settingsDrawn = false;
         }
-        // Bouton Retour : drawRoundedCard(110, 185, 100, 34)
-        else if (tx >= 110 && tx <= 210 && ty >= 185 && ty <= 219)
+        // Bouton Deconnexion : drawRoundedCard(196, 176, 116, 22)
+        else if (tx >= 196 && tx <= 312 && ty >= 173 && ty <= 200)
+        {
+            WiFi.disconnect(true, true);
+            delay(500);
+            ESP.restart();
+        }
+        // Bouton Retour : drawRoundedCard(4, 208, 80, 28)
+        else if (tx >= 4 && tx <= 84 && ty >= 208 && ty <= 236)
         {
             currentState = MAIN_PAGE;
             mainUIDrawn = false;
@@ -267,7 +307,10 @@ void app::handleTouch()
 
 void app::drawSettingsUI()
 {
-    affichage.drawSettingsPage(Sombre, Alarme, AutoSombre);
+    String ssid = WiFi.SSID();
+    if (ssid.length() == 0)
+        ssid = "Non connecte";
+    affichage.drawSettingsPage(Sombre, Alarme, AutoSombre, ssid);
 }
 
 // Wrapper affichage

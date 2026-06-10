@@ -2,6 +2,40 @@
 
 CTempo::CTempo()
 {
+    loadFromNVS();
+}
+
+void CTempo::saveToNVS()
+{
+    prefs.begin("tempo", false);
+    prefs.putInt("colorToday", (int)currentColor);
+    prefs.putInt("colorTomorrow", (int)nextColor);
+    prefs.putInt("bleuRem", nbBleuRemaining);
+    prefs.putInt("blancRem", nbBlancRemaining);
+    prefs.putInt("rougeRem", nbRougeRemaining);
+    prefs.putULong("fetchTs", fetchTimestamp);
+    prefs.putString("fetchDate", fetchDate);
+    prefs.end();
+}
+
+bool CTempo::loadFromNVS()
+{
+    prefs.begin("tempo", true);
+    if (!prefs.isKey("colorToday"))
+    {
+        prefs.end();
+        return false;
+    }
+    currentColor = (Couleurs)prefs.getInt("colorToday", NONE);
+    nextColor = (Couleurs)prefs.getInt("colorTomorrow", NONE);
+    nbBleuRemaining = prefs.getInt("bleuRem", 0);
+    nbBlancRemaining = prefs.getInt("blancRem", 0);
+    nbRougeRemaining = prefs.getInt("rougeRem", 0);
+    fetchTimestamp = prefs.getULong("fetchTs", 0);
+    fetchDate = prefs.getString("fetchDate", "");
+    prefs.end();
+    uncertain = true;
+    return true;
 }
 
 bool CTempo::updateColors()
@@ -11,8 +45,8 @@ bool CTempo::updateColors()
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
 
     HTTPClient http;
-
     http.begin(requete.c_str());
+    http.setTimeout(10000);
 
     int httpCode = http.GET();
 
@@ -61,7 +95,6 @@ bool CTempo::updateColors()
         int endDcpt = response.indexOf("</dcpt>");
         String dcpt = response.substring(startDcpt, endDcpt);
 
-        // split dcpt → rouge, blanc, bleu
         int firstComma = dcpt.indexOf(",");
         int secondComma = dcpt.indexOf(",", firstComma + 1);
 
@@ -69,7 +102,6 @@ bool CTempo::updateColors()
         tempNbBlancRemaining = dcpt.substring(firstComma + 1, secondComma).toInt();
         tempNbRougeRemaining = dcpt.substring(secondComma + 1).toInt();
 
-        // conversion string → enum
         tempCurrentColor = stringToColor(colorJ0);
         tempNextColor = stringToColor(colorJ1);
     }
@@ -87,11 +119,21 @@ bool CTempo::updateColors()
     nbRougeRemaining = nbRougeMax - tempNbRougeRemaining;
     nbBleuRemaining = nbBleuMax - tempNbBleuRemaining;
     nbBlancRemaining = nbBlancMax - tempNbBlancRemaining;
-    if(uncertain == false){
-        uncertain = false;
+
+    // Sauvegarder en NVS
+    struct tm ti;
+    if (getLocalTime(&ti))
+    {
+        char dateBuf[11];
+        strftime(dateBuf, sizeof(dateBuf), "%Y-%m-%d", &ti);
+        fetchDate = String(dateBuf);
+        fetchTimestamp = millis();
     }
+    saveToNVS();
+
     return true;
 }
+
 
 void CTempo::shiftToNextDay()
 {
@@ -102,7 +144,7 @@ void CTempo::shiftToNextDay()
 
 bool CTempo::hasNextColor()
 {
-    return !uncertain;
+    return nextColor != Couleurs::NONE;
 }
 
 String CTempo::getCurrentColor()
@@ -132,16 +174,14 @@ int CTempo::GetRemainingColor(Couleurs color)
 
 Couleurs CTempo::stringToColor(String color)
 {
-
     if (color == "BLEU")
         return Couleurs::Bleu;
-
     if (color == "ROUGE")
         return Couleurs::Rouge;
-
     if (color == "BLANC")
         return Couleurs::Blanc;
-
+    if (color == "TEMPO_INCONNU" || color == "0")
+        return Couleurs::Inconnu;
     return Couleurs::NONE;
 }
 
@@ -155,6 +195,8 @@ String CTempo::colorToString(Couleurs color)
         return "ROUGE";
     case Blanc:
         return "BLANC";
+    case Inconnu:
+        return "INCONNU";
     default:
         return "???";
     }

@@ -1,7 +1,11 @@
 #include "affichage.h"
 
-#define ACCENT_BLUE  0x34BF
-#define ACCENT_RED   0xF800
+// Couleurs Tempo CDC
+#define TEMPO_BLEU   0x1338  // #1565C0
+#define TEMPO_BLANC  0xE71C  // #E0E0E0
+#define TEMPO_ROUGE  0xC285  // #C62828
+#define TEMPO_INCONNU 0x4208 // #424242
+
 #define ACCENT_GREEN 0x07E0
 #define ACCENT_ORANGE 0xFD20
 #define ACCENT_CYAN  0x07FF
@@ -38,33 +42,21 @@ uint16_t Caffichage::couleurToTFT(Couleurs c)
     switch (c)
     {
     case Couleurs::Bleu:
-        return TFT_BLUE;
+        return TEMPO_BLEU;
     case Couleurs::Rouge:
-        return TFT_RED;
+        return TEMPO_ROUGE;
     case Couleurs::Blanc:
-        return TFT_WHITE;
+        return TEMPO_BLANC;
+    case Couleurs::Inconnu:
+        return TEMPO_INCONNU;
     default:
-        return TFT_WHITE;
+        return TEMPO_INCONNU;
     }
 }
 
 void Caffichage::drawColorDot(int cx, int cy, int r, Couleurs c)
 {
-    uint16_t color;
-    switch (c)
-    {
-    case Couleurs::Bleu:
-        color = ACCENT_BLUE;
-        break;
-    case Couleurs::Rouge:
-        color = ACCENT_RED;
-        break;
-    case Couleurs::Blanc:
-        color = darkMode ? 0xFFFF : 0xC618;
-        break;
-    default:
-        color = darkMode ? 0xFFFF : 0xC618;
-    }
+    uint16_t color = couleurToTFT(c);
     tft.fillCircle(cx, cy, r, color);
     tft.drawCircle(cx, cy, r, theme.cardBorder);
 }
@@ -173,7 +165,7 @@ void Caffichage::drawConnectionLost()
     drawRoundedCard(20, 50, 280, 140, theme.cardBg, theme.cardBorder);
 
     tft.setFreeFont(&FreeSansBold9pt7b);
-    tft.setTextColor(ACCENT_RED, theme.cardBg);
+    tft.setTextColor(TEMPO_ROUGE, theme.cardBg);
     tft.setCursor(70, 80);
     tft.print("Connexion perdue");
 
@@ -209,11 +201,21 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     tft.setCursor(14, 24);
     tft.print("Aujourd'hui");
 
-    drawColorDot(30, 55, 8, todayEnum);
-    tft.setFreeFont(&FreeSansBold9pt7b);
-    tft.setTextColor(theme.textPrimary, theme.cardBg);
-    tft.setCursor(45, 60);
-    tft.print(todayColor);
+    if (todayEnum == Couleurs::Inconnu)
+    {
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(TEMPO_INCONNU, theme.cardBg);
+        tft.setCursor(20, 60);
+        tft.print("Hors saison");
+    }
+    else
+    {
+        drawColorDot(30, 55, 8, todayEnum);
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(theme.textPrimary, theme.cardBg);
+        tft.setCursor(45, 60);
+        tft.print(todayColor);
+    }
 
     // Demain (droite)
     tft.setFreeFont(&FreeSans9pt7b);
@@ -221,11 +223,32 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     tft.setCursor(174, 24);
     tft.print("Demain");
 
-    drawColorDot(190, 55, 8, tomorrowEnum);
-    tft.setFreeFont(&FreeSansBold9pt7b);
-    tft.setTextColor(theme.textPrimary, theme.cardBg);
-    tft.setCursor(205, 60);
-    tft.print(tomorrowColor);
+    if (tomorrowEnum == Couleurs::NONE)
+    {
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(ACCENT_ORANGE, theme.cardBg);
+        tft.setCursor(180, 55);
+        tft.print("?");
+        tft.setFreeFont(&FreeSans9pt7b);
+        tft.setTextColor(theme.textSecondary, theme.cardBg);
+        tft.setCursor(174, 70);
+        tft.print("Vers 11h");
+    }
+    else if (tomorrowEnum == Couleurs::Inconnu)
+    {
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(TEMPO_INCONNU, theme.cardBg);
+        tft.setCursor(174, 60);
+        tft.print("Hors saison");
+    }
+    else
+    {
+        drawColorDot(190, 55, 8, tomorrowEnum);
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextColor(theme.textPrimary, theme.cardBg);
+        tft.setCursor(205, 60);
+        tft.print(tomorrowColor);
+    }
 
     // ===== SECTION MILIEU : JOURS RESTANTS =====
     drawRoundedCard(4, 84, 312, 80, theme.cardBg, theme.cardBorder);
@@ -319,14 +342,23 @@ void Caffichage::drawToggle(int x, int y, bool state, const char* label)
 
 void Caffichage::drawBackButton()
 {
-    drawRoundedCard(110, 185, 100, 34, theme.cardBg, ACCENT_CYAN);
+    drawRoundedCard(4, 208, 80, 28, theme.cardBg, ACCENT_CYAN);
     tft.setFreeFont(&FreeSansBold9pt7b);
     tft.setTextColor(ACCENT_CYAN, theme.cardBg);
-    tft.setCursor(132, 208);
+    tft.setCursor(16, 228);
     tft.print("Retour");
 }
 
-void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre)
+void Caffichage::drawDisconnectButton()
+{
+    drawRoundedCard(196, 176, 116, 22, theme.cardBg, TEMPO_ROUGE);
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(TEMPO_ROUGE, theme.cardBg);
+    tft.setCursor(203, 192);
+    tft.print("Deconnexion");
+}
+
+void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, String ssid)
 {
     tft.fillScreen(theme.bg);
     tft.setTextSize(1);
@@ -334,20 +366,38 @@ void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre)
     // Titre
     tft.setFreeFont(&FreeSansBold9pt7b);
     tft.setTextColor(theme.textPrimary, theme.bg);
-    tft.setCursor(110, 22);
+    tft.setCursor(110, 18);
     tft.print("Reglages");
 
     // Carte des toggles
-    drawRoundedCard(10, 35, 300, 140, theme.cardBg, theme.cardBorder);
+    drawRoundedCard(4, 28, 312, 120, theme.cardBg, theme.cardBorder);
 
-    // Toggle 1 : Mode sombre (y=50)
-    drawToggle(24, 50, sombre, "Mode sombre");
+    // Toggle 1 : Mode sombre (y=38)
+    drawToggle(18, 38, sombre, "Mode sombre");
 
-    // Toggle 2 : Alarme sonore (y=90)
-    drawToggle(24, 90, alarme, "Alarme sonore");
+    // Toggle 2 : Alarme sonore (y=72)
+    drawToggle(18, 72, alarme, "Alarme sonore");
 
-    // Toggle 3 : Sombre auto (y=130)
-    drawToggle(24, 130, autoSombre, "Sombre auto");
+    // Toggle 3 : Sombre auto (y=106)
+    drawToggle(18, 106, autoSombre, "Sombre auto");
+
+    // Section WiFi
+    drawRoundedCard(4, 156, 312, 44, theme.cardBg, theme.cardBorder);
+
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(theme.textSecondary, theme.cardBg);
+    tft.setCursor(14, 172);
+    tft.print("WiFi:");
+
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_CYAN, theme.cardBg);
+    tft.setCursor(14, 192);
+    if (ssid.length() > 15)
+        ssid = ssid.substring(0, 14) + "..";
+    tft.print(ssid);
+
+    // Bouton deconnexion (a droite, meme ligne)
+    drawDisconnectButton();
 
     // Bouton retour
     drawBackButton();

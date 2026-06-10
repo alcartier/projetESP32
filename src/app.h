@@ -31,10 +31,13 @@ private:
     String lastFetchTime = "--:--";
 
     // Settings
-
+    Preferences settingsPrefs;
     bool Alarme = true;
     bool Sombre = true;
     bool AutoSombre = false;
+
+    void loadSettings();
+    void saveSettings();
 
     // Touch
     bool settingsDrawn = false;

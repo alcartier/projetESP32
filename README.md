@@ -19,10 +19,10 @@ Ce projet embarque un **ESP32-S3** equipe d'un ecran **TFT 320x240** (ILI9341) q
 
 | Information         | Description                                      |
 |---------------------|--------------------------------------------------|
-| Couleur du jour     | Bleu, Blanc ou Rouge                             |
-| Couleur de demain   | Mise a jour quotidienne via API                  |
+| Couleur du jour     | Bleu, Blanc, Rouge ou Hors saison                |
+| Couleur de demain   | Mise a jour quotidienne via API (ou "?" avant 11h) |
 | Jours restants      | Decompte par couleur (Bleu/300, Blanc/43, Rouge/22) |
-| Date et heure       | Synchronisation NTP automatique                  |
+| Date et heure       | Synchronisation NTP automatique (Europe/Paris)   |
 
 ---
 
@@ -32,8 +32,8 @@ Ce projet embarque un **ESP32-S3** equipe d'un ecran **TFT 320x240** (ILI9341) q
 src/
  ├── main.cpp        # Point d'entree — init hardware + boucle principale
  ├── app.h / app.cpp # Machine a etats (connexion, page principale, reglages)
- ├── tempo.h / .cpp  # Logique metier — fetch API, parsing XML, gestion couleurs
- └── affichage.h/.cpp# Couche UI — rendu TFT avec cartes arrondies et indicateurs
+ ├── tempo.h / .cpp  # Logique metier — fetch API, parsing XML, cache NVS
+ └── affichage.h/.cpp# Couche UI — rendu TFT avec themes dark/light
 ```
 
 ### Machine a etats
@@ -43,10 +43,10 @@ src/
 │  CONNECTION │ ─────────────► │  MAIN_PAGE  │
 │             │ ◄───────────── │             │
 └─────────────┘    WiFi perdu  └─────────────┘
-                                      │
+                                      │ touch
                                       ▼
                                ┌─────────────┐
-                               │SETTING_PAGE │
+                               │SETTING_PAGE │ ← bouton "Retour"
                                └─────────────┘
 ```
 
@@ -78,11 +78,31 @@ src/
 
 ## Fonctionnalites
 
-- **WiFiManager** — Configuration WiFi via portail captif (`ESP32_Config`)
-- **Mise a jour automatique** — Fetch quotidien entre 11h et 13h avec retry toutes les 5 min
+### Affichage principal
+- **Couleurs CDC** — BLEU (#1565C0), BLANC (#E0E0E0), ROUGE (#C62828), INCONNU (#424242)
+- **Cas speciaux** — "Hors saison" si TEMPO_INCONNU, "?" + "Vers 11h" si demain non publie
+- **Indicateur d'incertitude** — Signale si les donnees n'ont pas pu etre actualisees
+
+### Connectivite
+- **WiFiManager** — Portail captif `TEMPO-Config` (timeout 5 min)
+- **Fetch API** — Cartelectronic XML, quotidien entre 11h-13h, retry toutes les 5 min
+- **Timeout HTTP 10s** — Fallback sur cache NVS si le serveur ne repond pas
+- **NTP Europe/Paris** — Fuseau POSIX avec gestion automatique de l'heure d'ete
+
+### Persistance (NVS)
+- **Donnees Tempo** — `color_today`, `color_tomorrow`, `days_remaining_*`, `fetch_date`, `fetch_timestamp`
+- **Parametres** — Mode sombre, alarme, sombre auto — persistes entre redemarrages
+
+### Page Reglages (tactile)
+- **Mode sombre / clair** — Toggle avec application immediate
+- **Alarme sonore** — Toggle (preparation future)
+- **Sombre automatique** — Toggle (preparation future)
+- **WiFi** — Affichage du SSID connecte + bouton deconnexion (efface credentials, relance portail)
+- **Navigation** — Touch n'importe ou sur main → settings, bouton "Retour" pour revenir
+
+### Logique temporelle
 - **Shift a minuit** — Rotation automatique des couleurs jour/demain
-- **Indicateur d'incertitude** — Signale visuellement si les donnees n'ont pas pu etre actualisees
-- **Mode debug** — Interaction tactile pour forcer shift/update + serveur local
+- **Flag incertain** — Active apres 13h si aucun fetch reussi
 
 ---
 
@@ -96,10 +116,10 @@ src/
 ### Compilation
 
 ```bash
-# Mode release (API production)
+# Mode release (API Cartelectronic production)
 pio run -e release
 
-# Mode debug (serveur local + interactions tactiles)
+# Mode debug (serveur local + interactions tactiles debug)
 pio run -e debug
 ```
 
@@ -119,13 +139,13 @@ pio device monitor -b 115200
 
 ## Configuration WiFi
 
-Au premier demarrage (ou si le reseau sauvegarde est indisponible) :
+Au premier demarrage (ou apres deconnexion via les reglages) :
 
-1. L'ESP32 cree un point d'acces **`ESP32_Config`**
+1. L'ESP32 cree un point d'acces **`TEMPO-Config`**
 2. Connectez-vous a ce reseau depuis un telephone/PC
 3. Ouvrez **`192.168.4.1`** dans un navigateur
 4. Selectionnez votre reseau WiFi et entrez le mot de passe
-5. L'appareil redemarrera et se connectera automatiquement
+5. L'appareil se connecte automatiquement (timeout portail : 5 min)
 
 ---
 
@@ -140,7 +160,7 @@ Au premier demarrage (ou si le reseau sauvegarde est indisponible) :
 
 ## Structure des donnees API
 
-L'appareil interroge une API XML qui retourne :
+L'appareil interroge le serveur Cartelectronic (XML) :
 
 ```xml
 <dateJ0>2026-06-06,BLEU</dateJ0>
@@ -153,6 +173,8 @@ L'appareil interroge une API XML qui retourne :
 | `dateJ0` | `YYYY-MM-DD,COULEUR`       | Date et couleur du jour            |
 | `dateJ1` | `YYYY-MM-DD,COULEUR`       | Date et couleur de demain          |
 | `dcpt`   | `bleu,blanc,rouge`         | Nombre de jours ecoules par couleur|
+
+Couleurs possibles : `BLEU`, `BLANC`, `ROUGE`, `TEMPO_INCONNU`
 
 ---
 

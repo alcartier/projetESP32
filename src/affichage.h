@@ -46,7 +46,8 @@ public:
     void drawConnectionLost();
 
     //ECRAN DE CONFIG :
-    void drawSettingsPage(bool sombre, bool alarme, bool autoSombre);
+    void drawSettingsPage(bool sombre, bool alarme, bool autoSombre, String ssid);
     void drawToggle(int x, int y, bool state, const char* label);
     void drawBackButton();
+    void drawDisconnectButton();
 };
