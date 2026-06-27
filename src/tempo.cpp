@@ -41,7 +41,7 @@ bool CTempo::loadFromNVS()
 bool CTempo::updateColors()
 {
     uncertain = false;
-    Couleurs tempCurrentColor, tempNextColor;
+    Couleurs tempCurrentColor, tempNextColor = Couleurs::NONE;
     int tempNbRougeRemaining, tempNbBleuRemaining, tempNbBlancRemaining;
 
     HTTPClient http;
@@ -81,12 +81,19 @@ bool CTempo::updateColors()
             localtime_r(&tomorrow, &tmTomorrow);
             strftime(tomorrowBuf, sizeof(tomorrowBuf), "%Y-%m-%d", &tmTomorrow);
 
-            if (dateJ0Only != String(todayBuf) || dateJ1Only != String(tomorrowBuf))
+            if (dateJ0Only != String(todayBuf))
             {
 #ifdef DEBUG_MODE
-                Serial.println("date incorrecte");
+                Serial.println("date J0 incorrecte: " + dateJ0Only + " != " + String(todayBuf));
 #endif
                 uncertain = true;
+            }
+            if (dateJ1Only != String(tomorrowBuf))
+            {
+#ifdef DEBUG_MODE
+                Serial.println("date J1 incorrecte: " + dateJ1Only + " != " + String(tomorrowBuf));
+#endif
+                tempNextColor = Couleurs::Inconnu;
             }
         }
 
@@ -103,7 +110,8 @@ bool CTempo::updateColors()
         tempNbRougeRemaining = dcpt.substring(secondComma + 1).toInt();
 
         tempCurrentColor = stringToColor(colorJ0);
-        tempNextColor = stringToColor(colorJ1);
+        if (tempNextColor != Couleurs::Inconnu)
+            tempNextColor = stringToColor(colorJ1);
     }
     else
     {
