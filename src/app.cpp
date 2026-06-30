@@ -84,8 +84,9 @@ void app::update()
                 midnightShifted = true;
             }
 
-            // 11h+ : fetch API
-            if (!updatedToday && timeinfo.tm_hour >= 11 && timeinfo.tm_hour < 13)
+            // 11h05+ : fetch API
+            bool after11h05 = (timeinfo.tm_hour > 11) || (timeinfo.tm_hour == 11 && timeinfo.tm_min >= 5);
+            if (!updatedToday && after11h05 && timeinfo.tm_hour < 13)
             {
                 if (millis() - lastRetryTime >= 300000 || lastRetryTime == 0)
                 {
