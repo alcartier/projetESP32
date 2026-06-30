@@ -273,19 +273,19 @@ void app::handleTouch()
             settingsDrawn = false;
         }
         // Toggle Alarme : drawToggle(18, 72, ...) → y=72..94
-        else if (ty >= 67 && ty <= 97)
-        {
-            Alarme = !Alarme;
-            saveSettings();
-            settingsDrawn = false;
-        }
-        // Toggle Sombre auto : drawToggle(18, 106, ...) → y=106..128
-        else if (ty >= 101 && ty <= 131)
-        {
-            AutoSombre = !AutoSombre;
-            saveSettings();
-            settingsDrawn = false;
-        }
+        // else if (ty >= 67 && ty <= 97)
+        // {
+        //     Alarme = !Alarme;
+        //     saveSettings();
+        //     settingsDrawn = false;
+        // }
+        // // Toggle Sombre auto : drawToggle(18, 106, ...) → y=106..128
+        // else if (ty >= 101 && ty <= 131)
+        // {
+        //     AutoSombre = !AutoSombre;
+        //     saveSettings();
+        //     settingsDrawn = false;
+        // }
         // Bouton Deconnexion : drawRoundedCard(196, 176, 116, 22)
         else if (tx >= 196 && tx <= 312 && ty >= 173 && ty <= 200)
         {

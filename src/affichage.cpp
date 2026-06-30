@@ -376,10 +376,10 @@ void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, Str
     drawToggle(18, 38, sombre, "Mode sombre");
 
     // Toggle 2 : Alarme sonore (y=72)
-    drawToggle(18, 72, alarme, "Alarme sonore");
+    //drawToggle(18, 72, alarme, "Alarme sonore");
 
     // Toggle 3 : Sombre auto (y=106)
-    drawToggle(18, 106, autoSombre, "Sombre auto");
+    //drawToggle(18, 106, autoSombre, "Sombre auto");
 
     // Section WiFi
     drawRoundedCard(4, 156, 312, 44, theme.cardBg, theme.cardBorder);
