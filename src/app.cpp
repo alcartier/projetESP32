@@ -82,6 +82,7 @@ void app::update()
             {
                 shiftToNextDayandUI();
                 midnightShifted = true;
+                updatedToday = false;
             }
 
             // 11h05+ : fetch API
@@ -214,8 +215,10 @@ void app::connectWiFi()
                 strftime(timeBuf, sizeof(timeBuf), "%H:%M", &ti);
                 lastFetchTime = String(timeBuf);
                 lastDay = ti.tm_mday;
+                bool after11h05 = (ti.tm_hour > 11) || (ti.tm_hour == 11 && ti.tm_min >= 5);
+                if (after11h05)
+                    updatedToday = true;
             }
-            updatedToday = true;
             midnightShifted = true;
         }
         else
