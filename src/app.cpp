@@ -82,7 +82,6 @@ void app::update()
             {
                 shiftToNextDayandUI();
                 midnightShifted = true;
-                updatedToday = false;
             }
 
             // 11h05+ : fetch API
@@ -206,20 +205,25 @@ void app::connectWiFi()
         configTzTime("CET-1CEST,M3.5.0/2,M10.5.0/3", "pool.ntp.org", "time.google.com");
         affichage.drawConnected();
         delay(1500);
+        struct tm ti;
+        bool ntpReady = getLocalTime(&ti);
+        if (ntpReady)
+        {
+            lastDay = ti.tm_mday;
+            midnightShifted = true;
+        }
+
         if (tempo.updateColors())
         {
-            struct tm ti;
-            if (getLocalTime(&ti))
+            if (ntpReady)
             {
                 char timeBuf[6];
                 strftime(timeBuf, sizeof(timeBuf), "%H:%M", &ti);
                 lastFetchTime = String(timeBuf);
-                lastDay = ti.tm_mday;
                 bool after11h05 = (ti.tm_hour > 11) || (ti.tm_hour == 11 && ti.tm_min >= 5);
                 if (after11h05)
                     updatedToday = true;
             }
-            midnightShifted = true;
         }
         else
         {

@@ -50,7 +50,7 @@ bool CTempo::updateColors()
 
     int httpCode = http.GET();
 
-    if (httpCode > 0)
+    if (httpCode == 200)
     {
         String response = http.getString();
 
@@ -86,7 +86,8 @@ bool CTempo::updateColors()
 #ifdef DEBUG_MODE
                 Serial.println("date J0 incorrecte: " + dateJ0Only + " != " + String(todayBuf));
 #endif
-                uncertain = true;
+                http.end();
+                return false;
             }
             if (dateJ1Only != String(tomorrowBuf))
             {
