@@ -6,7 +6,7 @@
 
 extern TFT_eSPI tft;
 
-struct Theme
+struct Theme // theme colors
 {
     uint16_t bg;
     uint16_t cardBg;

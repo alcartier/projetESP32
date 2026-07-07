@@ -18,11 +18,19 @@ class app
 
 private:
     State currentState = CONNECTION;
+
+    // Instances
     CTempo tempo;
     Caffichage affichage;
 
+    // WIFI
     bool connected = false;
+
+    //AFFICHAGE :
     bool mainUIDrawn = false;
+    bool settingsDrawn = false;
+
+    //FETCHING :
     bool updatedToday = false;
     bool midnightShifted = false;
     int lastDay = -1;
@@ -32,15 +40,18 @@ private:
 
     // Settings
     Preferences settingsPrefs;
-    bool Alarme = true;
     bool Sombre = true;
+
+    //TODO: implementer les settings pour l'alarme et l'auto sombre
+    bool Alarme = false;
     bool AutoSombre = false;
+    //
 
     void loadSettings();
     void saveSettings();
 
     // Touch
-    bool settingsDrawn = false;
+
     unsigned long lastTouchTime = 0;
     bool touchWasPressed = false;
 
@@ -51,12 +62,12 @@ public:
     // PROCEDURES :
     void init();
     void connectWiFi();
-    void update();
+    void update(); // main loop
     void handleStates();
     void handleTouch();
 
-    void updateColorsandUI();
-    void shiftToNextDayandUI();
+    void updateColorsandUI(); 
+    void shiftToNextDayandUI(); 
 
     void drawSettingsUI();
 
@@ -64,6 +75,5 @@ public:
     void Debug();
 #endif
 
-    // Wrapper affichage
     void drawMainUI();
 };
