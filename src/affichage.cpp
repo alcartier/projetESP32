@@ -198,7 +198,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     // Aujourd'hui (gauche)
     tft.setFreeFont(&FreeSans9pt7b);
     tft.setTextColor(theme.textSecondary, theme.cardBg);
-    tft.setCursor(14, 24);
+    tft.setCursor(34, 24);
     tft.print("Aujourd'hui");
 
     if (todayEnum == Couleurs::Inconnu)
@@ -210,7 +210,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     }
     else
     {
-        drawColorDot(30, 55, 8, todayEnum);
+        drawColorDot(25, 55, 12, todayEnum);
         tft.setFreeFont(&FreeSansBold9pt7b);
         tft.setTextColor(theme.textPrimary, theme.cardBg);
         tft.setCursor(45, 60);
@@ -220,7 +220,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     // Demain (droite)
     tft.setFreeFont(&FreeSans9pt7b);
     tft.setTextColor(theme.textSecondary, theme.cardBg);
-    tft.setCursor(174, 24);
+    tft.setCursor(204, 24);
     tft.print("Demain");
 
     if (tomorrowEnum == Couleurs::NONE)
@@ -243,7 +243,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     }
     else
     {
-        drawColorDot(190, 55, 8, tomorrowEnum);
+        drawColorDot(185, 55, 12, tomorrowEnum);
         tft.setFreeFont(&FreeSansBold9pt7b);
         tft.setTextColor(theme.textPrimary, theme.cardBg);
         tft.setCursor(205, 60);
@@ -358,6 +358,15 @@ void Caffichage::drawDisconnectButton()
     tft.print("Deconnexion");
 }
 
+void Caffichage::drawUpdateButton()
+{
+    drawRoundedCard(100, 208, 130, 28, theme.cardBg, ACCENT_CYAN);
+    tft.setFreeFont(&FreeSansBold9pt7b);
+    tft.setTextColor(ACCENT_CYAN, theme.cardBg);
+    tft.setCursor(110, 228);
+    tft.print("Mettre a jour");
+}
+
 void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, String ssid)
 {
     tft.fillScreen(theme.bg);
@@ -399,6 +408,11 @@ void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, Str
     // Bouton deconnexion (a droite, meme ligne)
     drawDisconnectButton();
 
+    // Bouton Update (en bas au centre)
+    drawUpdateButton();
+
     // Bouton retour
     drawBackButton();
+
+
 }

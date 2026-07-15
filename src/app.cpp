@@ -306,6 +306,12 @@ void app::handleTouch()
             currentState = MAIN_PAGE;
             mainUIDrawn = false;
         }
+        else if (tx >= 100 && tx <= 230 && ty >= 208 && ty <= 236)
+        {
+            // Update Button : drawRoundedCard(100, 208, 130, 28)
+            currentState = MAIN_PAGE;
+            mainUIDrawn = false;
+        }
         break;
 
     default:

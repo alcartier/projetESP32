@@ -21,6 +21,8 @@ void setup()
     tft.setRotation(1);
 
     apli.init();
+
+    apli.updateColorsandUI();
 }
 
 void loop()
