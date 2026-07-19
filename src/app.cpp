@@ -342,3 +342,78 @@ void app::drawMainUI()
         tempo.uncertain,
         lastFetchTime);
 }
+
+// Software Update
+
+const char* app::UPDATE_SERVER_URL = "http://TON_SERVEUR_ICI";
+
+bool app::isNewerVersion(const String &remote)
+{
+    int rMaj = 0, rMin = 0, rPatch = 0;
+    int lMaj = 0, lMin = 0, lPatch = 0;
+    sscanf(remote.c_str(), "%d.%d.%d", &rMaj, &rMin, &rPatch);
+    sscanf(APP_VERSION,    "%d.%d.%d", &lMaj, &lMin, &lPatch);
+
+    if (rMaj != lMaj) return rMaj > lMaj;
+    if (rMin != lMin) return rMin > lMin;
+    return rPatch > lPatch;
+}
+
+void app::checkForSoftwareUpdate()
+{
+    if (WiFi.status() != WL_CONNECTED)
+        return;
+
+    HTTPClient http;
+    // Le serveur expose un fichier version.txt contenant uniquement "X.Y.Z"
+    String versionUrl = String(UPDATE_SERVER_URL) + "/version.txt";
+    http.begin(versionUrl);
+    int code = http.GET();
+
+    if (code != HTTP_CODE_OK)
+    {
+        Serial.println("[OTA] Impossible de joindre le serveur: " + String(code));
+        http.end();
+        return;
+    }
+
+    String remoteVersion = http.getString();
+    remoteVersion.trim();
+    http.end();
+
+    Serial.println("[OTA] Version distante: " + remoteVersion + " | locale: " + APP_VERSION);
+
+    if (isNewerVersion(remoteVersion))
+    {
+        Serial.println("[OTA] Nouvelle version disponible, lancement de la mise a jour...");
+        String firmwareUrl = String(UPDATE_SERVER_URL) + "/firmware_" + remoteVersion + ".bin";
+        updateSoftware(firmwareUrl);
+    }
+    else
+    {
+        Serial.println("[OTA] Logiciel deja a jour.");
+        // TODO: afficher "Logiciel déjà à jour" sur l'écran
+    }
+}
+
+void app::updateSoftware(const String &firmwareUrl)
+{
+    WiFiClient client;
+    t_httpUpdate_return ret = httpUpdate.update(client, firmwareUrl);
+
+    switch (ret)
+    {
+    case HTTP_UPDATE_OK:
+        Serial.println("[OTA] Mise a jour reussie, redemarrage...");
+        // L'ESP redémarre automatiquement après httpUpdate.update()
+        break;
+    case HTTP_UPDATE_FAILED:
+        Serial.printf("[OTA] Echec: (%d) %s\n",
+                      httpUpdate.getLastError(),
+                      httpUpdate.getLastErrorString().c_str());
+        break;
+    case HTTP_UPDATE_NO_UPDATES:
+        Serial.println("[OTA] Aucune mise a jour.");
+        break;
+    }
+}
