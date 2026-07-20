@@ -84,9 +84,10 @@ void app::update()
                 midnightShifted = true;
             }
 
-            // 11h05+ : fetch API
+            // Fetch au boot (premier essai) ou dans la fenêtre 11h05-13h
             bool after11h05 = (timeinfo.tm_hour > 11) || (timeinfo.tm_hour == 11 && timeinfo.tm_min >= 5);
-            if (!updatedToday && after11h05 && timeinfo.tm_hour < 13)
+            bool bootFetch = (lastRetryTime == 0);
+            if (!updatedToday && (bootFetch || (after11h05 && timeinfo.tm_hour < 13)))
             {
                 if (millis() - lastRetryTime >= 300000 || lastRetryTime == 0)
                 {
@@ -96,14 +97,15 @@ void app::update()
                         char timeBuf[6];
                         strftime(timeBuf, sizeof(timeBuf), "%H:%M", &timeinfo);
                         lastFetchTime = String(timeBuf);
-                        updatedToday = true;
+                        if (after11h05)
+                            updatedToday = true;
                         drawMainUI();
                     }
                 }
             }
 
-            // 13h+ sans update : flag incertain
-            if (!updatedToday && timeinfo.tm_hour >= 13)
+            // 13h+ sans update : flag incertain (après au moins un essai via le loop)
+            if (!updatedToday && timeinfo.tm_hour >= 13 && !bootFetch)
             {
                 tempo.uncertain = true;
                 updatedToday = true;
@@ -309,8 +311,7 @@ void app::handleTouch()
         else if (tx >= 100 && tx <= 230 && ty >= 208 && ty <= 236)
         {
             // Update Button : drawRoundedCard(100, 208, 130, 28)
-            currentState = MAIN_PAGE;
-            mainUIDrawn = false;
+            checkForSoftwareUpdate();
         }
         break;
 
@@ -345,7 +346,7 @@ void app::drawMainUI()
 
 // Software Update
 
-const char* app::UPDATE_SERVER_URL = "http://TON_SERVEUR_ICI";
+const char* app::UPDATE_SERVER_URL = "http://192.168.0.168/esp"; // url server update (ex: "http:// )
 
 bool app::isNewerVersion(const String &remote)
 {

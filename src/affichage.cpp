@@ -365,6 +365,9 @@ void Caffichage::drawUpdateButton()
     tft.setTextColor(ACCENT_CYAN, theme.cardBg);
     tft.setCursor(110, 228);
     tft.print("Mettre a jour");
+    tft.setCursor(250, 228);
+    tft.setTextColor(theme.textPrimary);
+    tft.print(APP_VERSION);
 }
 
 void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, String ssid)
