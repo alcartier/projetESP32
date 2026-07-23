@@ -346,7 +346,7 @@ void app::drawMainUI()
 
 // Software Update
 
-const char* app::UPDATE_SERVER_URL = "http://192.168.0.168/esp"; // url server update (ex: "http:// )
+const char* app::UPDATE_SERVER_URL = "http://192.168.0.173/esp"; // url server update (ex: "http:// )
 
 bool app::isNewerVersion(const String &remote)
 {
@@ -365,6 +365,8 @@ void app::checkForSoftwareUpdate()
     if (WiFi.status() != WL_CONNECTED)
         return;
 
+    affichage.cardUpdateStatus("Recherche de mise a jour...");
+
     HTTPClient http;
     // Le serveur expose un fichier version.txt contenant uniquement "X.Y.Z"
     String versionUrl = String(UPDATE_SERVER_URL) + "/version.txt";
@@ -374,6 +376,9 @@ void app::checkForSoftwareUpdate()
     if (code != HTTP_CODE_OK)
     {
         Serial.println("[OTA] Impossible de joindre le serveur: " + String(code));
+        affichage.cardUpdateStatus("Impossible de joindre le serveur");
+        delay(3000);
+        affichage.cardUpdateStatusClear();
         http.end();
         return;
     }
@@ -386,35 +391,45 @@ void app::checkForSoftwareUpdate()
 
     if (isNewerVersion(remoteVersion))
     {
+        affichage.cardUpdateStatus("Nouvelle version disponible.");
         Serial.println("[OTA] Nouvelle version disponible, lancement de la mise a jour...");
         String firmwareUrl = String(UPDATE_SERVER_URL) + "/firmware_" + remoteVersion + ".bin";
         updateSoftware(firmwareUrl);
     }
     else
     {
+        affichage.cardUpdateStatus("Logiciel deja a jour.");
         Serial.println("[OTA] Logiciel deja a jour.");
-        // TODO: afficher "Logiciel déjà à jour" sur l'écran
+        delay(3000);
+        affichage.cardUpdateStatusClear();
     }
 }
 
 void app::updateSoftware(const String &firmwareUrl)
 {
     WiFiClient client;
+    affichage.cardUpdateStatus("Mise a jour en cours...");
     t_httpUpdate_return ret = httpUpdate.update(client, firmwareUrl);
 
     switch (ret)
     {
     case HTTP_UPDATE_OK:
-        Serial.println("[OTA] Mise a jour reussie, redemarrage...");
+        affichage.cardUpdateStatus("Mise a jour reussie, redemarrage...");
         // L'ESP redémarre automatiquement après httpUpdate.update()
         break;
     case HTTP_UPDATE_FAILED:
-        Serial.printf("[OTA] Echec: (%d) %s\n",
-                      httpUpdate.getLastError(),
-                      httpUpdate.getLastErrorString().c_str());
+        // Serial.printf("[OTA] Echec: (%d) %s\n",
+        //               httpUpdate.getLastError(),
+        //               httpUpdate.getLastErrorString().c_str());
+        affichage.cardUpdateStatus("Echec de la mise a jour.");
+        delay(3000);
+        affichage.cardUpdateStatusClear();
         break;
     case HTTP_UPDATE_NO_UPDATES:
         Serial.println("[OTA] Aucune mise a jour.");
+        affichage.cardUpdateStatus("Aucune mise a jour disponible.");
+        delay(3000);
+        affichage.cardUpdateStatusClear();
         break;
     }
 }

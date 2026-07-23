@@ -51,4 +51,8 @@ public:
     void drawBackButton();
     void drawUpdateButton();
     void drawDisconnectButton();
+
+    //Pop up Update
+    void cardUpdateStatus(String status);
+    void cardUpdateStatusClear();
 };

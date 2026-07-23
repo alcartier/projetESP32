@@ -417,5 +417,20 @@ void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, Str
     // Bouton retour
     drawBackButton();
 
+}
 
+void Caffichage::cardUpdateStatus(String status)
+{
+    drawRoundedCard(4, 208, 312, 28, theme.cardBg, theme.cardBorder);
+    tft.setFreeFont(&FreeSans9pt7b);
+    tft.setTextColor(theme.textPrimary, theme.cardBg);
+    tft.setCursor(10, 228);
+    tft.print(status);
+}
+
+void Caffichage::cardUpdateStatusClear()
+{
+    tft.fillRect(4, 208, 312, 28, theme.bg);
+    drawBackButton();
+    drawUpdateButton();
 }
