@@ -346,7 +346,7 @@ void app::drawMainUI()
 
 // Software Update
 
-const char* app::UPDATE_SERVER_URL = "http://192.168.0.173/esp"; // url server update (ex: "http:// )
+const char* app::UPDATE_SERVER_URL = "http://xxxxxx.xxx"; // url server update (ex: "http:// )
 
 bool app::isNewerVersion(const String &remote)
 {

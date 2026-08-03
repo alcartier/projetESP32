@@ -19,11 +19,11 @@ private:
     Couleurs nextColor = NONE;
 
 #ifdef DEBUG_MODE
-    std::string requete = "http://192.168.1.57/test.xml";
+    std::string requete = "http://xxx.xxx.xxx.xxx/test.xml";
 #endif
 
 #ifdef RELEASE_MODE
-    std::string requete = "http://cartelectronic-cloud.fr:5200/prte$/getcolor/x";
+    std::string requete = "http://xxxxxxx.xxx"; // URL de la requete pour obtenir la couleur du jour
 #endif
 
     int nbRougeRemaining = 0, nbBleuRemaining = 0, nbBlancRemaining = 0;
