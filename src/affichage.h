@@ -30,7 +30,7 @@ public:
     uint16_t couleurToTFT(Couleurs c);
 
     void drawRoundedCard(int x, int y, int w, int h, uint16_t bgColor, uint16_t borderColor);
-    void drawColorDot(int cx, int cy, int r, Couleurs c);
+    void drawColorDot(int cx, int cy, int r, Couleurs c, uint16_t outlineColor = 0, int outlineThickness = 0);
 
     //MAIN UI :
     void drawMainUI(String todayColor, Couleurs todayEnum, String tomorrowColor, Couleurs tomorrowEnum,

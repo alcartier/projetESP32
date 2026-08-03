@@ -54,9 +54,14 @@ uint16_t Caffichage::couleurToTFT(Couleurs c)
     }
 }
 
-void Caffichage::drawColorDot(int cx, int cy, int r, Couleurs c)
+void Caffichage::drawColorDot(int cx, int cy, int r, Couleurs c, uint16_t outlineColor, int outlineThickness)
 {
     uint16_t color = couleurToTFT(c);
+    if (outlineThickness > 0)
+    {
+        for (int i = 0; i < outlineThickness; i++)
+            tft.drawCircle(cx, cy, r + 1 + i, outlineColor);
+    }
     tft.fillCircle(cx, cy, r, color);
     tft.drawCircle(cx, cy, r, theme.cardBorder);
 }
@@ -210,7 +215,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     }
     else
     {
-        drawColorDot(25, 55, 12, todayEnum);
+        drawColorDot(25, 55, 12, todayEnum, theme.textSecondary, 2);
         tft.setFreeFont(&FreeSansBold9pt7b);
         tft.setTextColor(theme.textPrimary, theme.cardBg);
         tft.setCursor(45, 60);
@@ -243,7 +248,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     }
     else
     {
-        drawColorDot(185, 55, 12, tomorrowEnum);
+        drawColorDot(185, 55, 12, tomorrowEnum, theme.textSecondary, 2);
         tft.setFreeFont(&FreeSansBold9pt7b);
         tft.setTextColor(theme.textPrimary, theme.cardBg);
         tft.setCursor(205, 60);
@@ -269,21 +274,21 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
     int dotY = 140;
 
     // Bleu
-    drawColorDot(35, dotY, 7, Couleurs::Bleu);
+    drawColorDot(35, dotY, 7, Couleurs::Bleu, theme.textSecondary, 2);
     tft.setFreeFont(&FreeSansBold9pt7b);
     tft.setTextColor(theme.textPrimary, theme.cardBg);
     tft.setCursor(50, dotY + 5);
     tft.print(String(bleuRemaining) + "/300");
 
     // Blanc
-    drawColorDot(135, dotY, 7, Couleurs::Blanc);
+    drawColorDot(135, dotY, 7, Couleurs::Blanc, theme.textSecondary, 2);
     tft.setFreeFont(&FreeSansBold9pt7b);
     tft.setTextColor(theme.textPrimary, theme.cardBg);
     tft.setCursor(150, dotY + 5);
     tft.print(String(blancRemaining) + "/43");
 
     // Rouge
-    drawColorDot(235, dotY, 7, Couleurs::Rouge);
+    drawColorDot(235, dotY, 7, Couleurs::Rouge, theme.textSecondary, 2);
     tft.setFreeFont(&FreeSansBold9pt7b);
     tft.setTextColor(theme.textPrimary, theme.cardBg);
     tft.setCursor(250, dotY + 5);
@@ -416,7 +421,6 @@ void Caffichage::drawSettingsPage(bool sombre, bool alarme, bool autoSombre, Str
 
     // Bouton retour
     drawBackButton();
-
 }
 
 void Caffichage::cardUpdateStatus(String status)
