@@ -8,11 +8,11 @@
 
 #define ACCENT_GREEN 0x07E0
 #define ACCENT_ORANGE 0xFD20
-#define ACCENT_CYAN  0x07FF
+#define ACCENT_CYAN 0x03df
 
 // Themes
 static const Theme DARK_THEME  = {0x0841, 0x2104, 0x3186, 0xFFFF, 0xAD55};
-static const Theme LIGHT_THEME = {0xFFFF, 0xEF5D, 0xC618, 0x0000, 0x528A};
+static const Theme LIGHT_THEME = {0xFFFF, 0xad75, 0x738e, 0x0000, 0x528A};
 
 Caffichage::Caffichage()
 {
@@ -236,7 +236,7 @@ void Caffichage::drawMainUI(String todayColor, Couleurs todayEnum, String tomorr
         tft.print("?");
         tft.setFreeFont(&FreeSans9pt7b);
         tft.setTextColor(theme.textSecondary, theme.cardBg);
-        tft.setCursor(174, 70);
+        tft.setCursor(204, 70);
         tft.print("Vers 11h");
     }
     else if (tomorrowEnum == Couleurs::Inconnu)
