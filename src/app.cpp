@@ -213,6 +213,8 @@ void app::connectWiFi()
         {
             lastDay = ti.tm_mday;
             midnightShifted = true;
+            if (ti.tm_hour >= 0 && ti.tm_hour < 11)
+                tempo.shiftToNextDay();
         }
 
         if (tempo.updateColors())
